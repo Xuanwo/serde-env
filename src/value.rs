@@ -3,7 +3,7 @@ use std::env;
 
 use log::debug;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Node(pub String, pub BTreeMap<String, Node>);
 
 impl Node {
@@ -24,8 +24,7 @@ impl Node {
         Node(v.to_string(), BTreeMap::new())
     }
 
-    #[cfg(test)]
-    fn get(&self, k: &str) -> Option<&Node> {
+    pub fn get(&self, k: &str) -> Option<&Node> {
         debug!("get key: {}", k);
 
         match k.split_once('_') {

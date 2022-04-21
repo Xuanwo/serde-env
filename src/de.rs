@@ -31,15 +31,14 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize any: {}", &self.0 .0);
-        vis.visit_string(self.0 .0)
+        self.deserialize_map(vis)
     }
 
     fn deserialize_bool<V>(self, vis: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize bool: {}", &self.0 .0);
+        debug!("deserialize bool: {:?}", &self.0 .0);
         vis.visit_bool(self.0 .0.parse().map_err(Error::new)?)
     }
 
@@ -47,7 +46,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize i8: {}", &self.0 .0);
+        debug!("deserialize i8: {:?}", &self.0 .0);
         vis.visit_i8(self.0 .0.parse().map_err(Error::new)?)
     }
 
@@ -55,7 +54,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize i16: {}", &self.0 .0);
+        debug!("deserialize i16: {:?}", &self.0 .0);
         vis.visit_i16(self.0 .0.parse().map_err(Error::new)?)
     }
 
@@ -63,7 +62,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize i32: {}", &self.0 .0);
+        debug!("deserialize i32: {:?}", &self.0 .0);
         vis.visit_i32(self.0 .0.parse().map_err(Error::new)?)
     }
 
@@ -71,42 +70,15 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize i64: {}", &self.0 .0);
+        debug!("deserialize i64: {:?}", &self.0 .0);
         vis.visit_i64(self.0 .0.parse().map_err(Error::new)?)
-    }
-
-    fn deserialize_seq<V>(self, vis: V) -> Result<V::Value, Self::Error>
-    where
-        V: Visitor<'de>,
-    {
-        debug!("deserialize seq: {}", &self.0 .0);
-
-        let elements = self.0 .0.split(',').map(|v| v.trim().to_string()).collect();
-
-        vis.visit_seq(SeqAccessor::new(elements))
-    }
-
-    fn deserialize_tuple<V>(self, _len: usize, vis: V) -> Result<V::Value, Self::Error>
-    where
-        V: Visitor<'de>,
-    {
-        debug!("deserialize tuple: {}", &self.0 .0);
-
-        let elements = self.0 .0.split(',').map(|v| v.trim().to_string()).collect();
-
-        vis.visit_seq(SeqAccessor::new(elements))
-    }
-
-    forward_to_deserialize_any! {
-        unit unit_struct
-        tuple_struct enum ignored_any
     }
 
     fn deserialize_u8<V>(self, vis: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize u8: {}", &self.0 .0);
+        debug!("deserialize u8: {:?}", &self.0 .0);
 
         vis.visit_u8(self.0 .0.parse().map_err(Error::new)?)
     }
@@ -115,16 +87,21 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize u16: {}", &self.0 .0);
+        debug!("deserialize u16: {:?}", &self.0 .0);
 
         vis.visit_u16(self.0 .0.parse().map_err(Error::new)?)
+    }
+
+    forward_to_deserialize_any! {
+        unit unit_struct
+        tuple_struct enum ignored_any
     }
 
     fn deserialize_u32<V>(self, vis: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize u32: {}", &self.0 .0);
+        debug!("deserialize u32: {:?}", &self.0 .0);
 
         vis.visit_u32(self.0 .0.parse().map_err(Error::new)?)
     }
@@ -133,7 +110,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize u64: {}", &self.0 .0);
+        debug!("deserialize u64: {:?}", &self.0 .0);
 
         vis.visit_u64(self.0 .0.parse().map_err(Error::new)?)
     }
@@ -142,7 +119,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize f32: {}", &self.0 .0);
+        debug!("deserialize f32: {:?}", &self.0 .0);
 
         vis.visit_f32(self.0 .0.parse().map_err(Error::new)?)
     }
@@ -151,7 +128,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize f64: {}", &self.0 .0);
+        debug!("deserialize f64: {:?}", &self.0 .0);
 
         vis.visit_f64(self.0 .0.parse().map_err(Error::new)?)
     }
@@ -160,7 +137,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize char: {}", &self.0 .0);
+        debug!("deserialize char: {:?}", &self.0 .0);
 
         vis.visit_char(self.0 .0.parse().map_err(Error::new)?)
     }
@@ -169,7 +146,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize str: {}", &self.0 .0);
+        debug!("deserialize str: {:?}", &self.0 .0);
 
         vis.visit_str(&self.0 .0)
     }
@@ -178,7 +155,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize string: {}", &self.0 .0);
+        debug!("deserialize string: {:?}", &self.0 .0);
 
         vis.visit_string(self.0 .0)
     }
@@ -187,7 +164,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize bytes: {}", &self.0 .0);
+        debug!("deserialize bytes: {:?}", &self.0 .0);
 
         vis.visit_bytes(self.0 .0.as_bytes())
     }
@@ -196,7 +173,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize byte_buf: {}", &self.0 .0);
+        debug!("deserialize byte_buf: {:?}", &self.0 .0);
 
         vis.visit_byte_buf(self.0 .0.into_bytes())
     }
@@ -205,7 +182,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize option: {}", &self.0 .0);
+        debug!("deserialize option: {:?}", &self.0 .0);
 
         if self.0 .0.is_empty() {
             vis.visit_none()
@@ -222,19 +199,47 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize newtype struct: {}", &self.0 .0);
+        debug!("deserialize newtype struct: {:?}", &self.0 .0);
 
         vis.visit_newtype_struct(Deserializer(self.0))
+    }
+
+    fn deserialize_seq<V>(self, vis: V) -> Result<V::Value, Self::Error>
+    where
+        V: Visitor<'de>,
+    {
+        debug!("deserialize seq: {:?}", &self.0 .0);
+
+        let elements = self
+            .0
+             .0
+            .split(',')
+            .map(|v| v.trim().to_string())
+            .filter(|v| !v.is_empty())
+            .collect();
+
+        vis.visit_seq(SeqAccessor::new(elements))
+    }
+
+    fn deserialize_tuple<V>(self, _len: usize, vis: V) -> Result<V::Value, Self::Error>
+    where
+        V: Visitor<'de>,
+    {
+        debug!("deserialize tuple: {:?}", &self.0 .0);
+
+        let elements = self.0 .0.split(',').map(|v| v.trim().to_string()).collect();
+
+        vis.visit_seq(SeqAccessor::new(elements))
     }
 
     fn deserialize_map<V>(self, vis: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize map: {}, {:?}", &self.0 .0, &self.0 .1);
+        debug!("deserialize map: {:?}, {:?}", &self.0 .0, &self.0 .1);
 
         let keys = self.0 .1.keys().map(|v| v.to_string()).collect();
-        vis.visit_map(MapAccessor::new(keys, self.0 .1))
+        vis.visit_map(MapAccessor::new(keys, self.0))
     }
 
     fn deserialize_struct<V>(
@@ -246,11 +251,11 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize struct: {}, {:?}", &self.0 .0, &self.0 .1);
+        debug!("deserialize struct: {:?}, {:?}", &self.0 .0, &self.0 .1);
 
         vis.visit_map(MapAccessor::new(
             fields.iter().map(|v| v.to_string()).collect(),
-            self.0 .1,
+            self.0,
         ))
     }
 
@@ -258,7 +263,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize identifier: {}", &self.0 .0);
+        debug!("deserialize identifier: {:?}", &self.0 .0);
 
         self.deserialize_string(vis)
     }
@@ -295,17 +300,17 @@ impl<'de> SeqAccess<'de> for SeqAccessor {
 struct MapAccessor {
     last_key: Option<String>,
     keys: std::vec::IntoIter<String>,
-    entries: BTreeMap<String, Node>,
+    node: Node,
 }
 
 impl MapAccessor {
-    fn new(keys: Vec<String>, entries: BTreeMap<String, Node>) -> Self {
-        debug!("access keys {:?} from {:?}", keys, entries);
+    fn new(keys: Vec<String>, node: Node) -> Self {
+        debug!("access keys {:?} from {:?}", keys, node);
 
         Self {
             last_key: None,
             keys: keys.into_iter(),
-            entries,
+            node,
         }
     }
 }
@@ -340,12 +345,12 @@ impl<'de> de::MapAccess<'de> for MapAccessor {
             .take()
             .expect("value for current entry is missing");
 
-        match self.entries.remove(&key) {
+        match self.node.get(&key) {
             None => {
                 debug!("key {} not found, use empty str instead", key);
                 seed.deserialize(EmptyStr)
             }
-            Some(v) => seed.deserialize(Deserializer(v)),
+            Some(v) => seed.deserialize(Deserializer(v.clone())),
         }
     }
 }
@@ -418,6 +423,7 @@ mod tests {
         debug_mode: bool,
         provided: Option<String>,
         newtype: CustomNewType,
+        boom_zoom: bool,
     }
 
     /// FIXME: default not works correctly.
@@ -434,14 +440,15 @@ mod tests {
 
         temp_env::with_vars(
             vec![
-                (String::from("BAR"), Some("test")),
-                (String::from("BAZ"), Some("true")),
-                (String::from("DOOM"), Some("1, 2, 3 ")),
+                ("BAR", Some("test")),
+                ("BAZ", Some("true")),
+                ("DOOM", Some("1, 2, 3 ")),
                 // Empty string should result in empty vector.
-                (String::from("BOOM"), Some("")),
-                (String::from("SIZE"), Some("small")),
-                (String::from("PROVIDED"), Some("test")),
-                (String::from("NEWTYPE"), Some("42")),
+                ("BOOM", Some("")),
+                ("SIZE", Some("small")),
+                ("PROVIDED", Some("test")),
+                ("NEWTYPE", Some("42")),
+                ("boom_zoom", Some("true")),
             ],
             || {
                 let actual: Foo = from_env().expect("must success");
@@ -456,7 +463,8 @@ mod tests {
                         // kaboom: 8080,
                         debug_mode: false,
                         provided: Some(String::from("test")),
-                        newtype: CustomNewType(42)
+                        newtype: CustomNewType(42),
+                        boom_zoom: true,
                     }
                 )
             },
