@@ -422,6 +422,12 @@ mod tests {
         provided: Option<String>,
         newtype: CustomNewType,
         boom_zoom: bool,
+        #[serde(default = "default_bool")]
+        mode_xx: bool,
+    }
+
+    pub fn default_bool() -> bool {
+        true
     }
 
     pub fn default_kaboom() -> u16 {
@@ -446,6 +452,7 @@ mod tests {
                 ("PROVIDED", Some("test")),
                 ("NEWTYPE", Some("42")),
                 ("boom_zoom", Some("true")),
+                ("mode_xx", Some("false")),
             ],
             || {
                 let actual: Foo = from_env().expect("must success");
@@ -462,6 +469,7 @@ mod tests {
                         provided: Some(String::from("test")),
                         newtype: CustomNewType(42),
                         boom_zoom: true,
+                        mode_xx: false
                     }
                 )
             },
