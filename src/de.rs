@@ -14,13 +14,6 @@ where
     T::deserialize(Deserializer(Node::from_env()))
 }
 
-pub fn from_prefixed_env<T>(_prefix: &str) -> Result<T, Error>
-where
-    T: de::DeserializeOwned,
-{
-    todo!()
-}
-
 struct Deserializer(Node);
 
 impl<'de> de::Deserializer<'de> for Deserializer {
@@ -407,7 +400,6 @@ mod tests {
     }
 
     /// This test is ported from [softprops/envy](https://github.com/softprops/envy/blob/801d81e7c3e443470e110bf4e34460acba113476/src/lib.rs#L410)
-    /// FIXME: default not works correctly.
     #[derive(Deserialize, Debug, PartialEq)]
     pub struct Foo {
         bar: String,

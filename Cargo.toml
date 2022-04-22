@@ -1,7 +1,7 @@
 [package]
 authors = ["Xuanwo <github@xuanwo.io>"]
 categories = ["command-line-utilities"]
-description = "env support for serde"
+description = "deserialize env into structs via serde"
 documentation = "https://docs.rs/serde-env"
 repository = "https://github.com/Xuanwo/serde-env"
 edition = "2021"
