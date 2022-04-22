@@ -4,7 +4,6 @@ use log::debug;
 use serde::de::{DeserializeSeed, IntoDeserializer, SeqAccess, Visitor};
 use serde::{de, forward_to_deserialize_any};
 
-use crate::emtpy_str::EmptyStr;
 use crate::error::Error;
 use crate::value::Node;
 
@@ -253,10 +252,8 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     {
         debug!("deserialize struct: {:?}, {:?}", &self.0 .0, &self.0 .1);
 
-        vis.visit_map(MapAccessor::new(
-            fields.iter().map(|v| v.to_string()).collect(),
-            self.0,
-        ))
+        let keys = fields.iter().map(|v| v.to_string()).collect();
+        vis.visit_map(MapAccessor::new(keys, self.0))
     }
 
     fn deserialize_identifier<V>(self, vis: V) -> Result<V::Value, Self::Error>
@@ -298,7 +295,7 @@ impl<'de> SeqAccess<'de> for SeqAccessor {
 }
 
 struct MapAccessor {
-    last_key: Option<String>,
+    last_value: Option<Node>,
     keys: std::vec::IntoIter<String>,
     node: Node,
 }
@@ -308,7 +305,7 @@ impl MapAccessor {
         debug!("access keys {:?} from {:?}", keys, node);
 
         Self {
-            last_key: None,
+            last_value: None,
             keys: keys.into_iter(),
             node,
         }
@@ -323,15 +320,23 @@ impl<'de> de::MapAccess<'de> for MapAccessor {
         K: DeserializeSeed<'de>,
     {
         debug_assert!(
-            self.last_key.is_none(),
+            self.last_value.is_none(),
             "value for the last entry is not deserialized"
         );
 
-        match self.keys.next() {
-            None => Ok(None),
-            Some(k) => {
-                self.last_key = Some(k.clone());
-                Ok(Some(seed.deserialize(k.into_deserializer())?))
+        loop {
+            let key = match self.keys.next() {
+                None => return Ok(None),
+                Some(v) => v,
+            };
+
+            match self.node.get(&key) {
+                // If key is not found inside node, skip it and continue.
+                None => continue,
+                Some(v) => {
+                    self.last_value = Some(v.clone());
+                    return Ok(Some(seed.deserialize(key.into_deserializer())?));
+                }
             }
         }
     }
@@ -340,18 +345,12 @@ impl<'de> de::MapAccess<'de> for MapAccessor {
     where
         V: DeserializeSeed<'de>,
     {
-        let key = self
-            .last_key
+        let value = self
+            .last_value
             .take()
             .expect("value for current entry is missing");
 
-        match self.node.get(&key) {
-            None => {
-                debug!("key {} not found, use empty str instead", key);
-                seed.deserialize(EmptyStr)
-            }
-            Some(v) => seed.deserialize(Deserializer(v.clone())),
-        }
+        seed.deserialize(Deserializer(value))
     }
 }
 
@@ -410,15 +409,14 @@ mod tests {
     /// This test is ported from [softprops/envy](https://github.com/softprops/envy/blob/801d81e7c3e443470e110bf4e34460acba113476/src/lib.rs#L410)
     /// FIXME: default not works correctly.
     #[derive(Deserialize, Debug, PartialEq)]
-    // #[serde(default)]
     pub struct Foo {
         bar: String,
         baz: bool,
         zoom: Option<u16>,
         doom: Vec<u64>,
         boom: Vec<String>,
-        // #[serde(default = "default_kaboom")]
-        // kaboom: u16,
+        #[serde(default = "default_kaboom")]
+        kaboom: u16,
         #[serde(default)]
         debug_mode: bool,
         provided: Option<String>,
@@ -426,10 +424,9 @@ mod tests {
         boom_zoom: bool,
     }
 
-    /// FIXME: default not works correctly.
-    // pub fn default_kaboom() -> u16 {
-    //     8080
-    // }
+    pub fn default_kaboom() -> u16 {
+        8080
+    }
 
     #[derive(Deserialize, Debug, PartialEq, Default)]
     pub struct CustomNewType(u32);
@@ -460,7 +457,7 @@ mod tests {
                         zoom: None,
                         doom: vec![1, 2, 3],
                         boom: vec![],
-                        // kaboom: 8080,
+                        kaboom: 8080,
                         debug_mode: false,
                         provided: Some(String::from("test")),
                         newtype: CustomNewType(42),
