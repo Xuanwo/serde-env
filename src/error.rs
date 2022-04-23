@@ -3,8 +3,11 @@ use std::fmt::{self, Debug, Display};
 use anyhow::anyhow;
 use serde::{de, ser};
 
+/// Errors returned by serde-env.
+///
+/// TODO: returns more meaning errors.
 #[derive(Debug)]
-pub struct Error(pub anyhow::Error);
+pub struct Error(anyhow::Error);
 
 impl ser::Error for Error {
     fn custom<T: Display>(msg: T) -> Self {
