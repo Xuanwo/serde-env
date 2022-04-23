@@ -15,7 +15,10 @@ use crate::value::Node;
 ///
 /// #[derive(Debug, Deserialize)]
 /// struct Test {
-///     #[serde(default)]
+///     #[cfg(windows)]
+///     #[serde(rename="userprofile")]
+///     home: String,
+///     #[cfg(not(windows))]
 ///     home: String,
 ///     #[serde(rename="path")]
 ///     path_renamed: String,
