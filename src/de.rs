@@ -1,5 +1,3 @@
-use std::collections::BTreeMap;
-
 use log::debug;
 use serde::de::{DeserializeSeed, IntoDeserializer, SeqAccess, Visitor};
 use serde::{de, forward_to_deserialize_any};
@@ -30,58 +28,58 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize bool: {:?}", &self.0 .0);
-        vis.visit_bool(self.0 .0.parse().map_err(Error::new)?)
+        debug!("deserialize bool: {:?}", &self.0.value());
+        vis.visit_bool(self.0.value().parse().map_err(Error::new)?)
     }
 
     fn deserialize_i8<V>(self, vis: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize i8: {:?}", &self.0 .0);
-        vis.visit_i8(self.0 .0.parse().map_err(Error::new)?)
+        debug!("deserialize i8: {:?}", &self.0.value());
+        vis.visit_i8(self.0.value().parse().map_err(Error::new)?)
     }
 
     fn deserialize_i16<V>(self, vis: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize i16: {:?}", &self.0 .0);
-        vis.visit_i16(self.0 .0.parse().map_err(Error::new)?)
+        debug!("deserialize i16: {:?}", &self.0.value());
+        vis.visit_i16(self.0.value().parse().map_err(Error::new)?)
     }
 
     fn deserialize_i32<V>(self, vis: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize i32: {:?}", &self.0 .0);
-        vis.visit_i32(self.0 .0.parse().map_err(Error::new)?)
+        debug!("deserialize i32: {:?}", &self.0.value());
+        vis.visit_i32(self.0.value().parse().map_err(Error::new)?)
     }
 
     fn deserialize_i64<V>(self, vis: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize i64: {:?}", &self.0 .0);
-        vis.visit_i64(self.0 .0.parse().map_err(Error::new)?)
+        debug!("deserialize i64: {:?}", &self.0.value());
+        vis.visit_i64(self.0.value().parse().map_err(Error::new)?)
     }
 
     fn deserialize_u8<V>(self, vis: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize u8: {:?}", &self.0 .0);
+        debug!("deserialize u8: {:?}", &self.0.value());
 
-        vis.visit_u8(self.0 .0.parse().map_err(Error::new)?)
+        vis.visit_u8(self.0.value().parse().map_err(Error::new)?)
     }
 
     fn deserialize_u16<V>(self, vis: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize u16: {:?}", &self.0 .0);
+        debug!("deserialize u16: {:?}", &self.0.value());
 
-        vis.visit_u16(self.0 .0.parse().map_err(Error::new)?)
+        vis.visit_u16(self.0.value().parse().map_err(Error::new)?)
     }
 
     forward_to_deserialize_any! {
@@ -93,90 +91,90 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize u32: {:?}", &self.0 .0);
+        debug!("deserialize u32: {:?}", &self.0.value());
 
-        vis.visit_u32(self.0 .0.parse().map_err(Error::new)?)
+        vis.visit_u32(self.0.value().parse().map_err(Error::new)?)
     }
 
     fn deserialize_u64<V>(self, vis: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize u64: {:?}", &self.0 .0);
+        debug!("deserialize u64: {:?}", &self.0.value());
 
-        vis.visit_u64(self.0 .0.parse().map_err(Error::new)?)
+        vis.visit_u64(self.0.value().parse().map_err(Error::new)?)
     }
 
     fn deserialize_f32<V>(self, vis: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize f32: {:?}", &self.0 .0);
+        debug!("deserialize f32: {:?}", &self.0.value());
 
-        vis.visit_f32(self.0 .0.parse().map_err(Error::new)?)
+        vis.visit_f32(self.0.value().parse().map_err(Error::new)?)
     }
 
     fn deserialize_f64<V>(self, vis: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize f64: {:?}", &self.0 .0);
+        debug!("deserialize f64: {:?}", &self.0.value());
 
-        vis.visit_f64(self.0 .0.parse().map_err(Error::new)?)
+        vis.visit_f64(self.0.value().parse().map_err(Error::new)?)
     }
 
     fn deserialize_char<V>(self, vis: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize char: {:?}", &self.0 .0);
+        debug!("deserialize char: {:?}", &self.0.value());
 
-        vis.visit_char(self.0 .0.parse().map_err(Error::new)?)
+        vis.visit_char(self.0.value().parse().map_err(Error::new)?)
     }
 
     fn deserialize_str<V>(self, vis: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize str: {:?}", &self.0 .0);
+        debug!("deserialize str: {:?}", &self.0.value());
 
-        vis.visit_str(&self.0 .0)
+        vis.visit_str(self.0.value())
     }
 
     fn deserialize_string<V>(self, vis: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize string: {:?}", &self.0 .0);
+        debug!("deserialize string: {:?}", &self.0.value());
 
-        vis.visit_string(self.0 .0)
+        vis.visit_string(self.0.into_value())
     }
 
     fn deserialize_bytes<V>(self, vis: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize bytes: {:?}", &self.0 .0);
+        debug!("deserialize bytes: {:?}", &self.0.value());
 
-        vis.visit_bytes(self.0 .0.as_bytes())
+        vis.visit_bytes(self.0.value().as_bytes())
     }
 
     fn deserialize_byte_buf<V>(self, vis: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize byte_buf: {:?}", &self.0 .0);
+        debug!("deserialize byte_buf: {:?}", &self.0.value());
 
-        vis.visit_byte_buf(self.0 .0.into_bytes())
+        vis.visit_byte_buf(self.0.into_value().into_bytes())
     }
 
     fn deserialize_option<V>(self, vis: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize option: {:?}", &self.0 .0);
+        debug!("deserialize option: {:?}", &self.0.value());
 
-        if self.0 .0.is_empty() {
+        if self.0.value().is_empty() {
             vis.visit_none()
         } else {
             vis.visit_some(Deserializer(self.0))
@@ -191,7 +189,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize newtype struct: {:?}", &self.0 .0);
+        debug!("deserialize newtype struct: {:?}", &self.0.value());
 
         vis.visit_newtype_struct(Deserializer(self.0))
     }
@@ -200,11 +198,11 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize seq: {:?}", &self.0 .0);
+        debug!("deserialize seq: {:?}", &self.0.value());
 
         let elements = self
             .0
-             .0
+            .value()
             .split(',')
             .map(|v| v.trim().to_string())
             .filter(|v| !v.is_empty())
@@ -217,9 +215,14 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize tuple: {:?}", &self.0 .0);
+        debug!("deserialize tuple: {:?}", &self.0.value());
 
-        let elements = self.0 .0.split(',').map(|v| v.trim().to_string()).collect();
+        let elements = self
+            .0
+            .value()
+            .split(',')
+            .map(|v| v.trim().to_string())
+            .collect();
 
         vis.visit_seq(SeqAccessor::new(elements))
     }
@@ -228,9 +231,13 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize map: {:?}, {:?}", &self.0 .0, &self.0 .1);
+        debug!(
+            "deserialize map: {:?}, {:?}",
+            &self.0.value(),
+            &self.0.children()
+        );
 
-        let keys = self.0 .1.keys().map(|v| v.to_string()).collect();
+        let keys = self.0.children().keys().map(|v| v.to_string()).collect();
         vis.visit_map(MapAccessor::new(keys, self.0))
     }
 
@@ -243,7 +250,11 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize struct: {:?}, {:?}", &self.0 .0, &self.0 .1);
+        debug!(
+            "deserialize struct: {:?}, {:?}",
+            &self.0.value(),
+            &self.0.children()
+        );
 
         let keys = fields.iter().map(|v| v.to_string()).collect();
         vis.visit_map(MapAccessor::new(keys, self.0))
@@ -253,7 +264,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize identifier: {:?}", &self.0 .0);
+        debug!("deserialize identifier: {:?}", &self.0.value());
 
         self.deserialize_string(vis)
     }
@@ -280,9 +291,7 @@ impl<'de> SeqAccess<'de> for SeqAccessor {
     {
         match self.elements.next() {
             None => Ok(None),
-            Some(v) => Ok(Some(
-                seed.deserialize(Deserializer(Node(v, BTreeMap::new())))?,
-            )),
+            Some(v) => Ok(Some(seed.deserialize(Deserializer(Node::new(&v)))?)),
         }
     }
 }

@@ -4,7 +4,7 @@ use std::env;
 use log::debug;
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Node(pub String, pub BTreeMap<String, Node>);
+pub struct Node(String, BTreeMap<String, Node>);
 
 impl Node {
     pub fn from_env() -> Self {
@@ -20,8 +20,20 @@ impl Node {
         root
     }
 
-    fn new(v: &str) -> Self {
+    pub fn new(v: &str) -> Self {
         Node(v.to_string(), BTreeMap::new())
+    }
+
+    pub fn value(&self) -> &str {
+        &self.0
+    }
+
+    pub fn into_value(self) -> String {
+        self.0
+    }
+
+    pub fn children(&self) -> &BTreeMap<String, Node> {
+        &self.1
     }
 
     pub fn get(&self, k: &str) -> Option<&Node> {
