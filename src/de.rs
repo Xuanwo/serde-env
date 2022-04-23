@@ -15,6 +15,7 @@ use crate::value::Node;
 ///
 /// #[derive(Debug, Deserialize)]
 /// struct Test {
+///     #[serde(default)]
 ///     home: String,
 ///     #[serde(rename="path")]
 ///     path_renamed: String,

@@ -17,6 +17,7 @@
 //!
 //! #[derive(Debug, Deserialize)]
 //! struct Test {
+//!     #[serde(default)]
 //!     home: String,
 //!     cargo: Cargo,
 //! }
