@@ -3,39 +3,40 @@ use std::env;
 
 use log::debug;
 
+/// Node represents a tree of env values.
+///
+/// Every env will be seperated by `_` in key to construct this tree.
+///
+/// - `ABC=123` => `Node("123", {})`
+/// - `ABC_DEF=123` => `Node("", { "DEF": Node("123", {}) })`
+/// - `ABC=123,ABC_DEF=456` => `Node("123", { "DEF": Node("456", {}) })`
 #[derive(Debug, PartialEq, Clone)]
 pub struct Node(String, BTreeMap<String, Node>);
 
 impl Node {
-    pub fn from_env() -> Self {
-        let mut root = Node::new("");
-
-        let vars = env::vars()
-            .map(|(k, v)| (k.to_lowercase(), v))
-            .filter(|(_, v)| !v.is_empty());
-        for (k, v) in vars {
-            root.push(&k, &v)
-        }
-
-        root
-    }
-
+    /// Create a new node without children
     pub fn new(v: &str) -> Self {
         Node(v.to_string(), BTreeMap::new())
     }
 
+    /// Get value from node.
     pub fn value(&self) -> &str {
         &self.0
     }
 
+    /// Into value to get ownership.
     pub fn into_value(self) -> String {
         self.0
     }
 
+    /// Get children from node.
     pub fn children(&self) -> &BTreeMap<String, Node> {
         &self.1
     }
 
+    /// Get node value full key name
+    ///
+    /// `node.get("abc_def")` => `node.get("abc").get("def")`
     pub fn get(&self, k: &str) -> Option<&Node> {
         debug!("get key: {}", k);
 
@@ -48,6 +49,9 @@ impl Node {
         }
     }
 
+    /// Push into node with full key name.
+    ///
+    /// `node.push("abc_def", v)` => `node.push("abc", "").push("def", v)`
     fn push(&mut self, k: &str, v: &str) {
         debug!("try to push value: {}, {}", k, v);
 
@@ -66,6 +70,20 @@ impl Node {
                 }
             },
         };
+    }
+
+    /// Construct full tree from env.
+    pub fn from_env() -> Self {
+        let mut root = Node::new("");
+
+        let vars = env::vars()
+            .map(|(k, v)| (k.to_lowercase(), v))
+            .filter(|(_, v)| !v.is_empty());
+        for (k, v) in vars {
+            root.push(&k, &v)
+        }
+
+        root
     }
 }
 
