@@ -5,6 +5,24 @@ use serde::{de, forward_to_deserialize_any};
 use crate::error::Error;
 use crate::value::Node;
 
+/// Deserialize into struct via env.
+///
+/// # Examples
+///
+/// ```
+/// use serde::Deserialize;
+/// use serde_env::from_env;
+///
+/// #[derive(Debug, Deserialize)]
+/// struct Test {
+///     home: String,
+///     #[serde(rename="path")]
+///     path_renamed: String,
+/// }
+///
+/// let t: Test = from_env().expect("deserialize from env");
+/// println!("{:?}", t)
+/// ```
 pub fn from_env<T>() -> Result<T, Error>
 where
     T: de::DeserializeOwned,
