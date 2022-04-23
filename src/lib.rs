@@ -17,6 +17,10 @@
 //!
 //! #[derive(Debug, Deserialize)]
 //! struct Test {
+//!     #[cfg(windows)]
+//!     #[serde(rename="userprofile")]
+//!     home: String,
+//!     #[cfg(not(windows))]
 //!     home: String,
 //!     cargo: Cargo,
 //! }
