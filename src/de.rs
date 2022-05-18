@@ -265,7 +265,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
 
     fn deserialize_struct<V>(
         self,
-        _name: &'static str,
+        name: &'static str,
         fields: &'static [&'static str],
         vis: V,
     ) -> Result<V::Value, Self::Error>
@@ -273,9 +273,8 @@ impl<'de> de::Deserializer<'de> for Deserializer {
         V: Visitor<'de>,
     {
         debug!(
-            "deserialize struct: {:?}, {:?}",
-            &self.0.value(),
-            &self.0.children()
+            "deserialize struct: name: {} fields: {:?} from {:#?}",
+            name, fields, self.0
         );
 
         let keys = fields.iter().map(|v| v.to_string()).collect();
@@ -326,7 +325,7 @@ struct MapAccessor {
 
 impl MapAccessor {
     fn new(keys: Vec<String>, node: Node) -> Self {
-        debug!("access keys {:?} from {:?}", keys, node);
+        debug!("access keys {:?} from map", keys);
 
         Self {
             last_value: None,
@@ -381,6 +380,7 @@ impl<'de> de::MapAccess<'de> for MapAccessor {
 #[cfg(test)]
 mod tests {
     use serde::Deserialize;
+    use std::collections::HashMap;
 
     use super::*;
 
@@ -497,5 +497,117 @@ mod tests {
                 )
             },
         )
+    }
+
+    #[derive(Deserialize, PartialEq, Debug)]
+    struct TestStructAlias {
+        #[serde(alias = "meta_log_level")]
+        log_level: String,
+    }
+
+    // We are not support alias now.
+    #[test]
+    #[ignore]
+    fn test_from_env_alias() {
+        let _ = env_logger::try_init();
+
+        temp_env::with_vars(vec![("meta_log_level", Some("DEBUG"))], || {
+            let t: TestStructAlias = from_env().expect("must success");
+            assert_eq!(
+                t,
+                TestStructAlias {
+                    log_level: "DEBUG".to_string()
+                }
+            )
+        })
+    }
+
+    #[derive(Deserialize, PartialEq, Debug)]
+    struct TestStructFlat {
+        meta_log_level: String,
+    }
+
+    #[test]
+    fn test_from_env_flat() {
+        let _ = env_logger::try_init();
+
+        temp_env::with_vars(vec![("meta_log_level", Some("DEBUG"))], || {
+            let t: TestStructFlat = from_env().expect("must success");
+            assert_eq!(
+                t,
+                TestStructFlat {
+                    meta_log_level: "DEBUG".to_string()
+                }
+            )
+        })
+    }
+
+    #[test]
+    fn test_from_env_flat_upper() {
+        let _ = env_logger::try_init();
+
+        temp_env::with_vars(vec![("META_LOG_LEVEL", Some("DEBUG"))], || {
+            let t: TestStructFlat = from_env().expect("must success");
+            assert_eq!(
+                t,
+                TestStructFlat {
+                    meta_log_level: "DEBUG".to_string()
+                }
+            )
+        })
+    }
+
+    #[derive(Deserialize, PartialEq, Debug)]
+    struct TestStructFlatWithDefault {
+        meta_log_level: String,
+    }
+
+    impl Default for TestStructFlatWithDefault {
+        fn default() -> Self {
+            Self {
+                meta_log_level: "INFO".to_string(),
+            }
+        }
+    }
+
+    #[test]
+    fn test_from_env_flat_with_default() {
+        let _ = env_logger::try_init();
+
+        temp_env::with_vars(vec![("meta_log_level", Some("DEBUG"))], || {
+            let t: TestStructFlatWithDefault = from_env().expect("must success");
+            assert_eq!(
+                t,
+                TestStructFlatWithDefault {
+                    meta_log_level: "DEBUG".to_string()
+                }
+            )
+        })
+    }
+
+    #[test]
+    fn test_from_env_flat_upper_with_default() {
+        let _ = env_logger::try_init();
+
+        temp_env::with_vars(vec![("META_LOG_LEVEL", Some("DEBUG"))], || {
+            let t: TestStructFlatWithDefault = from_env().expect("must success");
+            assert_eq!(
+                t,
+                TestStructFlatWithDefault {
+                    meta_log_level: "DEBUG".to_string()
+                }
+            )
+        })
+    }
+
+    #[test]
+    #[ignore]
+    fn test_from_env_as_map() {
+        let _ = env_logger::try_init();
+
+        temp_env::with_vars(vec![("METASRV_LOG_LEVEL", Some("DEBUG"))], || {
+            let t: HashMap<String, String> = from_env().expect("must success");
+            assert_eq!(t["metasrv_log_level"], "DEBUG".to_string())
+        })
     }
 }

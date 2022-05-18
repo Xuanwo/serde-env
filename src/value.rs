@@ -1,7 +1,8 @@
 use std::collections::BTreeMap;
-use std::env;
+use std::fmt::{Debug, Formatter};
+use std::{env, fmt};
 
-use log::debug;
+use log::trace;
 
 /// Node represents a tree of env values.
 ///
@@ -10,8 +11,24 @@ use log::debug;
 /// - `ABC=123` => `Node("123", {})`
 /// - `ABC_DEF=123` => `Node("", { "DEF": Node("123", {}) })`
 /// - `ABC=123,ABC_DEF=456` => `Node("123", { "DEF": Node("456", {}) })`
-#[derive(Debug, PartialEq, Clone)]
+#[derive(PartialEq, Clone)]
 pub struct Node(String, BTreeMap<String, Node>);
+
+impl Debug for Node {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        if self.0.is_empty() {
+            // Value is empty, print inner map instead.
+            f.debug_map().entries(&self.1).finish()
+        } else if self.1.is_empty() {
+            // inner map is empty too, print value instead.
+            f.write_str(&self.0)
+        } else {
+            // Print as list.
+            // The first entry is value, and the second is inner map.
+            f.debug_list().entry(&self.0).entry(&self.1).finish()
+        }
+    }
+}
 
 impl Node {
     /// Create a new node without children
@@ -38,7 +55,7 @@ impl Node {
     ///
     /// `node.get("abc_def")` => `node.get("abc").get("def")`
     pub fn get(&self, k: &str) -> Option<&Node> {
-        debug!("get key: {}", k);
+        trace!("get key: {}", k);
 
         match k.split_once('_') {
             None => self.1.get(k),
@@ -53,7 +70,7 @@ impl Node {
     ///
     /// `node.push("abc_def", v)` => `node.push("abc", "").push("def", v)`
     fn push(&mut self, k: &str, v: &str) {
-        debug!("try to push value: {}, {}", k, v);
+        trace!("try to push value: {}, {}", k, v);
 
         match k.split_once('_') {
             None => {
