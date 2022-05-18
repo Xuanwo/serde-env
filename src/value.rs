@@ -46,9 +46,29 @@ impl Node {
         self.0
     }
 
-    /// Get children from node.
-    pub fn children(&self) -> &BTreeMap<String, Node> {
-        &self.1
+    pub fn flatten(&self, prefix: &str) -> Vec<String> {
+        let mut m = Vec::new();
+
+        for (key, value) in self.1.iter() {
+            let prefix_key = if prefix.is_empty() {
+                key.to_string()
+            } else {
+                format!("{prefix}_{key}")
+            };
+
+            if !value.0.is_empty() {
+                m.push(prefix_key.clone())
+            }
+            if !value.1.is_empty() {
+                m.push(prefix_key.clone());
+                m.extend(value.flatten(&prefix_key))
+            }
+        }
+
+        m.sort();
+        m.dedup();
+
+        m
     }
 
     /// Get node value full key name
@@ -170,5 +190,20 @@ mod tests {
                 )])
             )
         )
+    }
+
+    #[test]
+    fn test_flatten() {
+        let mut root = Node::new("");
+
+        root.push("a", "Hello, World!");
+        root.push("a_b_c_d", "Hello, World!");
+        root.push("a_b_c_e", "Hello, Mars!");
+        root.push("a_b_f", "Hello, Moon!");
+
+        assert_eq!(
+            root.flatten(""),
+            vec!["a", "a_b", "a_b_c", "a_b_c_d", "a_b_c_e", "a_b_f"]
+        );
     }
 }
