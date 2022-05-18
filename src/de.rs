@@ -253,13 +253,9 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!(
-            "deserialize map: {:?}, {:?}",
-            &self.0.value(),
-            &self.0.children()
-        );
+        debug!("deserialize map: {:#?}", &self.0);
 
-        let keys = self.0.children().keys().map(|v| v.to_string()).collect();
+        let keys = self.0.flatten("");
         vis.visit_map(MapAccessor::new(keys, self.0))
     }
 
@@ -278,6 +274,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
         );
 
         let keys = fields.iter().map(|v| v.to_string()).collect();
+        debug!("flatten keys: {:?}", keys);
         vis.visit_map(MapAccessor::new(keys, self.0))
     }
 
@@ -601,7 +598,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_from_env_as_map() {
         let _ = env_logger::try_init();
 
