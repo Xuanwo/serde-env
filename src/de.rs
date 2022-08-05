@@ -39,12 +39,11 @@ struct Deserializer(Node);
 impl<'de> de::Deserializer<'de> for Deserializer {
     type Error = Error;
 
-    fn deserialize_any<V>(self, vis: V) -> Result<V::Value, Self::Error>
+    fn deserialize_any<V>(self, _vis: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        // Maybe it should be an unconditional error. Because the error message is confusing.
-        self.deserialize_map(vis)
+        Err(de::Error::custom("deserialize_any is not supported"))
     }
 
     fn deserialize_bool<V>(self, vis: V) -> Result<V::Value, Self::Error>
