@@ -39,11 +39,11 @@ struct Deserializer(Node);
 impl<'de> de::Deserializer<'de> for Deserializer {
     type Error = Error;
 
-    fn deserialize_any<V>(self, vis: V) -> Result<V::Value, Self::Error>
+    fn deserialize_any<V>(self, _vis: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        self.deserialize_map(vis)
+        Err(de::Error::custom("deserialize_any is not supported"))
     }
 
     fn deserialize_bool<V>(self, vis: V) -> Result<V::Value, Self::Error>
@@ -106,7 +106,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
 
     forward_to_deserialize_any! {
         unit unit_struct
-        tuple_struct enum ignored_any
+        tuple_struct ignored_any
     }
 
     fn deserialize_u32<V>(self, vis: V) -> Result<V::Value, Self::Error>
@@ -286,6 +286,25 @@ impl<'de> de::Deserializer<'de> for Deserializer {
 
         self.deserialize_string(vis)
     }
+
+    fn deserialize_enum<V>(
+        self,
+        name: &'static str,
+        variants: &'static [&'static str],
+        vis: V,
+    ) -> Result<V::Value, Self::Error>
+    where
+        V: Visitor<'de>,
+    {
+        debug!(
+            "deserialize enum: name: {} variants: {:?} from {:#?}",
+            name, variants, self.0
+        );
+
+        let keys = variants.iter().map(|v| v.to_string()).collect();
+        debug!("flatten keys: {:?}", keys);
+        vis.visit_enum(EnumAccessor::new(keys, self.0))
+    }
 }
 
 struct SeqAccessor {
@@ -371,6 +390,87 @@ impl<'de> de::MapAccess<'de> for MapAccessor {
             .expect("value for current entry is missing");
 
         seed.deserialize(Deserializer(value))
+    }
+}
+
+struct EnumAccessor {
+    keys: std::vec::IntoIter<String>,
+    node: Node,
+}
+
+impl EnumAccessor {
+    fn new(keys: Vec<String>, node: Node) -> Self {
+        debug!("access keys {:?} from enum", keys);
+
+        Self {
+            keys: keys.into_iter(),
+            node,
+        }
+    }
+}
+
+impl<'de> de::EnumAccess<'de> for EnumAccessor {
+    type Error = Error;
+    type Variant = VariantAccessor;
+
+    fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant), Self::Error>
+    where
+        V: DeserializeSeed<'de>,
+    {
+        let key = self
+            .keys
+            .into_iter()
+            .find(|key| self.node.value() == key)
+            .ok_or_else(|| de::Error::custom("no variant found"))?;
+
+        let variant = VariantAccessor::new(self.node);
+        Ok((seed.deserialize(key.into_deserializer())?, variant))
+    }
+}
+
+struct VariantAccessor {
+    node: Node,
+}
+
+impl VariantAccessor {
+    fn new(node: Node) -> Self {
+        Self { node }
+    }
+}
+
+impl<'de> de::VariantAccess<'de> for VariantAccessor {
+    type Error = Error;
+
+    fn unit_variant(self) -> Result<(), Self::Error> {
+        if self.node.has_children() {
+            return Err(de::Error::custom("variant is not unit"));
+        }
+        Ok(())
+    }
+    fn newtype_variant_seed<T>(self, seed: T) -> Result<T::Value, Self::Error>
+    where
+        T: DeserializeSeed<'de>,
+    {
+        seed.deserialize(Deserializer(self.node))
+    }
+    fn tuple_variant<V>(self, _len: usize, _visitor: V) -> Result<V::Value, Self::Error>
+    where
+        V: Visitor<'de>,
+    {
+        Err(de::Error::custom("tuple variant is not supported"))
+    }
+    fn struct_variant<V>(
+        self,
+        fields: &'static [&'static str],
+        visitor: V,
+    ) -> Result<V::Value, Self::Error>
+    where
+        V: Visitor<'de>,
+    {
+        debug!("deserialize struct variant: fields: {:?}", fields);
+        let keys = fields.iter().map(|v| v.to_string()).collect();
+        debug!("flatten keys: {:?}", keys);
+        visitor.visit_map(MapAccessor::new(keys, self.node))
     }
 }
 
@@ -605,5 +705,91 @@ mod tests {
             let t: HashMap<String, String> = from_env().expect("must success");
             assert_eq!(t["metasrv_log_level"], "DEBUG".to_string())
         })
+    }
+
+    #[derive(Deserialize, PartialEq, Debug)]
+    struct EnumNewtype {
+        bar: String,
+    }
+
+    #[derive(Deserialize, PartialEq, Debug)]
+    struct ExternallyEnumStruct {
+        foo: ExternallyEnum,
+    }
+
+    #[derive(Deserialize, PartialEq, Debug)]
+    enum ExternallyEnum {
+        X,
+        Y(EnumNewtype),
+        Z { a: i32 },
+    }
+
+    #[test]
+    fn test_from_env_externally_enum() {
+        let _ = env_logger::try_init();
+
+        temp_env::with_vars(vec![("FOO", Some("X"))], || {
+            let t: ExternallyEnumStruct = from_env().expect("must success");
+            assert_eq!(t.foo, ExternallyEnum::X)
+        });
+
+        temp_env::with_vars(vec![("FOO", Some("Y")), ("FOO_BAR", Some("xxx"))], || {
+            let t: ExternallyEnumStruct = from_env().expect("must success");
+            assert_eq!(
+                t.foo,
+                ExternallyEnum::Y(EnumNewtype {
+                    bar: "xxx".to_string()
+                })
+            )
+        });
+
+        temp_env::with_vars(vec![("FOO", Some("Z")), ("FOO_A", Some("1"))], || {
+            let t: ExternallyEnumStruct = from_env().expect("must success");
+            assert_eq!(t.foo, ExternallyEnum::Z { a: 1 })
+        });
+    }
+
+    #[derive(Deserialize, PartialEq, Debug)]
+    struct InternallyEnumStruct {
+        foo: InternallyEnum,
+    }
+
+    #[derive(Deserialize, PartialEq, Debug)]
+    #[serde(tag = "type")]
+    enum InternallyEnum {
+        X,
+        Y(EnumNewtype),
+        Z { a: i32 },
+    }
+
+    // Currently Internally / Adjacently / Untagged enum is not support by the following issues
+    // https://github.com/serde-rs/serde/issues/2187
+    #[test]
+    #[ignore]
+    fn test_from_env_internally_enum() {
+        let _ = env_logger::try_init();
+
+        temp_env::with_vars(vec![("FOO_TYPE", Some("X"))], || {
+            let t: InternallyEnumStruct = from_env().expect("must success");
+            assert_eq!(t.foo, InternallyEnum::X)
+        });
+
+        temp_env::with_vars(
+            vec![("FOO_TYPE", Some("Y")), ("FOO_BAR", Some("xxx"))],
+            || {
+                let t: InternallyEnumStruct = from_env().expect("must success");
+                assert_eq!(
+                    t.foo,
+                    InternallyEnum::Y(EnumNewtype {
+                        bar: "xxx".to_string()
+                    })
+                )
+            },
+        );
+
+        temp_env::with_vars(vec![("FOO_TYPE", Some("Z")), ("FOO_A", Some("1"))], || {
+            let t: InternallyEnumStruct = from_env().expect("must success");
+            assert_eq!(t.foo, InternallyEnum::Z { a: 1 })
+        });
     }
 }

@@ -46,6 +46,10 @@ impl Node {
         self.0
     }
 
+    pub fn has_children(&self) -> bool {
+        !self.1.is_empty()
+    }
+
     pub fn flatten(&self, prefix: &str) -> Vec<String> {
         let mut m = Vec::new();
 
