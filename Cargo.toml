@@ -7,7 +7,7 @@ repository = "https://github.com/Xuanwo/serde-env"
 edition = "2021"
 license = "Apache-2.0"
 name = "serde-env"
-version = "0.0.3"
+version = "0.1.0"
 
 [dependencies]
 serde = "1"
@@ -16,5 +16,5 @@ log = "0.4"
 
 [dev-dependencies]
 serde = { version = "1", features = ["derive"] }
-temp-env = "0.2"
+temp-env = "0.3"
 env_logger = "0.9"
