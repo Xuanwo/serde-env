@@ -98,7 +98,10 @@ impl Node {
 
         match k.split_once('_') {
             None => {
-                self.1.insert(k.to_string(), Self::new(v));
+                self.1
+                    .entry(k.to_string())
+                    .or_insert_with(|| Node::new(""))
+                    .0 = v.to_string();
             }
             Some((k, remain)) => match self.1.get_mut(k) {
                 None => {
@@ -162,6 +165,7 @@ mod tests {
         root.push("a_b_c_d", "Hello, World!");
         root.push("a_b_c_e", "Hello, Mars!");
         root.push("a_b_f", "Hello, Moon!");
+        root.push("a", "Hello, Earth!");
 
         assert_eq!(
             root,
@@ -170,7 +174,7 @@ mod tests {
                 BTreeMap::from([(
                     "a".to_string(),
                     Node(
-                        "".to_string(),
+                        "Hello, Earth!".to_string(),
                         BTreeMap::from([(
                             "b".to_string(),
                             Node(
