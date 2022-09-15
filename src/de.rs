@@ -528,7 +528,7 @@ mod tests {
     }
 
     /// This test is ported from [softprops/envy](https://github.com/softprops/envy/blob/801d81e7c3e443470e110bf4e34460acba113476/src/lib.rs#L410)
-    #[derive(Deserialize, Debug, PartialEq)]
+    #[derive(Deserialize, Debug, PartialEq, Eq)]
     pub struct Foo {
         bar: String,
         baz: bool,
@@ -554,7 +554,7 @@ mod tests {
         8080
     }
 
-    #[derive(Deserialize, Debug, PartialEq, Default)]
+    #[derive(Deserialize, Debug, PartialEq, Eq, Default)]
     pub struct CustomNewType(u32);
 
     #[test]
