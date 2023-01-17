@@ -194,9 +194,9 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        debug!("deserialize option: {:?}", &self.0.value());
+        debug!("deserialize option: {:?}", &self.0);
 
-        if self.0.value().is_empty() {
+        if self.0.is_empty() {
             vis.visit_none()
         } else {
             vis.visit_some(Deserializer(self.0))
@@ -791,5 +791,30 @@ mod tests {
             let t: InternallyEnumStruct = from_env().expect("must success");
             assert_eq!(t.foo, InternallyEnum::Z { a: 1 })
         });
+    }
+
+    #[derive(Deserialize, PartialEq, Debug, Eq)]
+    struct DoubleOptionOuter {
+        inner: Option<DoubleOptionInner>,
+    }
+
+    #[derive(Deserialize, PartialEq, Debug, Eq)]
+    struct DoubleOptionInner {
+        val: Option<u8>,
+    }
+
+    #[test]
+    fn double_option() {
+        let _ = env_logger::try_init();
+
+        temp_env::with_var("INNER_VAL", Some("2"), || {
+            let t: DoubleOptionOuter = from_env().expect("must success");
+            assert_eq!(
+                t,
+                DoubleOptionOuter {
+                    inner: Some(DoubleOptionInner { val: Some(2) })
+                }
+            )
+        })
     }
 }

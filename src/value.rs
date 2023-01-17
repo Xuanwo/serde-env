@@ -46,6 +46,10 @@ impl Node {
         self.0
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty() && self.1.is_empty()
+    }
+
     pub fn has_children(&self) -> bool {
         !self.1.is_empty()
     }
