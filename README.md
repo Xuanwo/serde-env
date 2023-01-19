@@ -1,6 +1,6 @@
 # serde-env &emsp; [![Build Status]][actions] [![Latest Version]][crates.io]
 
-[Build Status]: https://img.shields.io/github/workflow/status/Xuanwo/serde-env/CI/main
+[Build Status]: https://img.shields.io/github/actions/workflow/status/Xuanwo/serde-env/ci.yml?branch=main
 [actions]: https://github.com/Xuanwo/serde-env/actions?query=branch%3Amain
 [Latest Version]: https://img.shields.io/crates/v/serde-env.svg
 [crates.io]: https://crates.io/crates/serde-env
