@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::fmt::{Debug, Formatter};
 use std::{env, fmt};
 
-use log::trace;
+use crate::cond_log::trace;
 
 /// Node represents a tree of env values.
 ///
