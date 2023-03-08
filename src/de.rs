@@ -1,4 +1,4 @@
-use log::debug;
+use crate::cond_log::debug;
 use serde::de::{DeserializeSeed, IntoDeserializer, SeqAccess, Visitor};
 use serde::{de, forward_to_deserialize_any};
 
