@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use std::fmt::{Debug, Formatter};
 use std::{env, fmt};
 
@@ -54,8 +54,8 @@ impl Node {
         !self.1.is_empty()
     }
 
-    pub fn flatten(&self, prefix: &str) -> Vec<String> {
-        let mut m = Vec::new();
+    pub fn flatten(&self, prefix: &str) -> HashSet<String> {
+        let mut m = HashSet::new();
 
         for (key, value) in self.1.iter() {
             let prefix_key = if prefix.is_empty() {
@@ -65,16 +65,13 @@ impl Node {
             };
 
             if !value.0.is_empty() {
-                m.push(prefix_key.clone())
+                m.insert(prefix_key.clone());
             }
             if !value.1.is_empty() {
-                m.push(prefix_key.clone());
+                m.insert(prefix_key.clone());
                 m.extend(value.flatten(&prefix_key))
             }
         }
-
-        m.sort();
-        m.dedup();
 
         m
     }
@@ -213,9 +210,14 @@ mod tests {
         root.push("a_b_c_e", "Hello, Mars!");
         root.push("a_b_f", "Hello, Moon!");
 
-        assert_eq!(
-            root.flatten(""),
-            vec!["a", "a_b", "a_b_c", "a_b_c_d", "a_b_c_e", "a_b_f"]
-        );
+        let mut expected = HashSet::<String>::new();
+        expected.insert("a".to_owned());
+        expected.insert("a_b".to_owned());
+        expected.insert("a_b_c".to_owned());
+        expected.insert("a_b_c_d".to_owned());
+        expected.insert("a_b_c_e".to_owned());
+        expected.insert("a_b_f".to_owned());
+
+        assert_eq!(root.flatten(""), expected);
     }
 }

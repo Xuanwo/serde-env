@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::cond_log::debug;
 use serde::de::{DeserializeSeed, IntoDeserializer, SeqAccess, Visitor};
 use serde::{de, forward_to_deserialize_any};
@@ -335,12 +337,12 @@ impl<'de> SeqAccess<'de> for SeqAccessor {
 
 struct MapAccessor {
     last_value: Option<Node>,
-    keys: std::vec::IntoIter<String>,
+    keys: std::collections::hash_set::IntoIter<String>,
     node: Node,
 }
 
 impl MapAccessor {
-    fn new(keys: Vec<String>, node: Node) -> Self {
+    fn new(keys: HashSet<String>, node: Node) -> Self {
         debug!("access keys {:?} from map", keys);
 
         Self {
@@ -413,13 +415,12 @@ impl<'de> de::EnumAccess<'de> for EnumAccessor {
     type Error = Error;
     type Variant = VariantAccessor;
 
-    fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant), Self::Error>
+    fn variant_seed<V>(mut self, seed: V) -> Result<(V::Value, Self::Variant), Self::Error>
     where
         V: DeserializeSeed<'de>,
     {
         let key = self
             .keys
-            .into_iter()
             .find(|key| self.node.value() == key)
             .ok_or_else(|| de::Error::custom("no variant found"))?;
 
