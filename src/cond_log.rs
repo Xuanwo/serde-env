@@ -1,10 +1,10 @@
-#[cfg(debug_assertions)]
+#[cfg(feature = "log")]
 pub(crate) use log::debug;
 
-#[cfg(debug_assertions)]
+#[cfg(feature = "log")]
 pub(crate) use log::trace;
 
-#[cfg(not(debug_assertions))]
+#[cfg(not(feature = "log"))]
 macro_rules! debug {
     ($($arg:tt)+) => {
         // Debug logging disabled in `release` profile
@@ -13,10 +13,10 @@ macro_rules! debug {
     };
 }
 
-#[cfg(not(debug_assertions))]
+#[cfg(not(feature = "log"))]
 pub(crate) use debug;
 
-#[cfg(not(debug_assertions))]
+#[cfg(not(feature = "log"))]
 macro_rules! trace {
     ($($arg:tt)+) => {
         // Trace logging disabled in `release` profile
@@ -25,5 +25,5 @@ macro_rules! trace {
     };
 }
 
-#[cfg(not(debug_assertions))]
+#[cfg(not(feature = "log"))]
 pub(crate) use trace;
