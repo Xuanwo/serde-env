@@ -38,3 +38,4 @@ mod error;
 mod value;
 
 pub use de::from_env;
+pub use error::Error;
