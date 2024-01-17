@@ -32,8 +32,8 @@ impl Debug for Node {
 
 impl Node {
     /// Create a new node without children
-    pub fn new(v: &str) -> Self {
-        Node(v.to_string(), BTreeMap::new())
+    pub fn new(v: impl Into<String>) -> Self {
+        Node(v.into(), BTreeMap::new())
     }
 
     /// Get value from node.
@@ -101,12 +101,12 @@ impl Node {
             None => {
                 self.1
                     .entry(k.to_string())
-                    .or_insert_with(|| Node::new(""))
+                    .or_insert_with(|| Node::new(String::default()))
                     .0 = v.to_string();
             }
             Some((k, remain)) => match self.1.get_mut(k) {
                 None => {
-                    let mut node = Self::new("");
+                    let mut node = Self::new(String::default());
                     node.push(remain, v);
                     self.1.insert(k.to_string(), node);
                 }
@@ -119,7 +119,7 @@ impl Node {
 
     /// Construct full tree from env.
     pub fn from_env() -> Self {
-        let mut root = Node::new("");
+        let mut root = Node::new(String::default());
 
         let vars = env::vars()
             .map(|(k, v)| (k.to_lowercase(), v))
@@ -128,6 +128,23 @@ impl Node {
             root.push(&k, &v)
         }
 
+        root
+    }
+    /// Construct full tree from env with prefix.
+    pub fn from_env_with_prefix(prefix: &str) -> Self {
+        let prefix = format!("{}_", prefix);
+        let mut root = Node::new(&prefix);
+        let vars = env::vars().filter_map(|(k, v)| {
+            if v.is_empty() {
+                None
+            } else {
+                k.strip_prefix(&prefix).map(|k| (k.to_lowercase(), v))
+            }
+        });
+
+        for (k, v) in vars {
+            root.push(&k, &v)
+        }
         root
     }
 }
@@ -219,5 +236,11 @@ mod tests {
         expected.insert("a_b_f".to_owned());
 
         assert_eq!(root.flatten(""), expected);
+    }
+    #[test]
+    fn test_prefix() {
+        std::env::set_var("TEST_ENV_VAR", "Hello, World!");
+        let root = Node::from_env_with_prefix("TEST_ENV");
+        assert_eq!(root.get("var"), Some(&Node::new("Hello, World!")));
     }
 }
