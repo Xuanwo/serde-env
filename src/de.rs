@@ -18,11 +18,11 @@ use crate::value::Node;
 /// #[derive(Debug, Deserialize)]
 /// struct Test {
 ///     #[cfg(windows)]
-///     #[serde(rename="userprofile")]
+///     #[serde(rename = "userprofile")]
 ///     home: String,
 ///     #[cfg(not(windows))]
 ///     home: String,
-///     #[serde(rename="path")]
+///     #[serde(rename = "path")]
 ///     path_renamed: String,
 /// }
 ///
@@ -48,15 +48,21 @@ where
 ///     home: String,
 ///     path: String,
 /// }
-/// std::env::set_var("TEST_ENV_HOME", "test");
-/// std::env::set_var("TEST_ENV_PATH", "test");
-/// let t: Test = from_env_with_prefix("TEST_ENV").expect("deserialize from env");
+/// temp_env::with_vars(
+///     [
+///         ("TEST_ENV_HOME", Some("test")),
+///         ("TEST_ENV_PATH", Some("test")),
+///     ],
+///     || {
+///         let t: Test = from_env_with_prefix("TEST_ENV").expect("deserialize from env");
 ///
-/// let result = Test {
-///    home: "test".to_string(),
-///    path: "test".to_string()
-/// };
-/// assert_eq!(t, result);
+///         let result = Test {
+///             home: "test".to_string(),
+///             path: "test".to_string(),
+///         };
+///         assert_eq!(t, result);
+///     },
+/// );
 /// ```
 pub fn from_env_with_prefix<T>(prefix: &str) -> Result<T, Error>
 where

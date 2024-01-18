@@ -1,5 +1,6 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 #[derive(serde::Deserialize)]
+#[allow(dead_code)]
 pub struct MyStruct {
     first_var: String,
     second_var: String,
