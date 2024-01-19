@@ -18,7 +18,7 @@
 //! #[derive(Debug, Deserialize)]
 //! struct Test {
 //!     #[cfg(windows)]
-//!     #[serde(rename="userprofile")]
+//!     #[serde(rename = "userprofile")]
 //!     home: String,
 //!     #[cfg(not(windows))]
 //!     home: String,
@@ -34,8 +34,8 @@
 
 mod cond_log;
 mod de;
-mod error;
+pub mod error;
 mod value;
 
-pub use de::from_env;
+pub use de::{from_env, from_env_with_prefix};
 pub use error::Error;

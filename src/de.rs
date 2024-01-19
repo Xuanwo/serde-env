@@ -18,22 +18,57 @@ use crate::value::Node;
 /// #[derive(Debug, Deserialize)]
 /// struct Test {
 ///     #[cfg(windows)]
-///     #[serde(rename="userprofile")]
+///     #[serde(rename = "userprofile")]
 ///     home: String,
 ///     #[cfg(not(windows))]
 ///     home: String,
-///     #[serde(rename="path")]
+///     #[serde(rename = "path")]
 ///     path_renamed: String,
 /// }
 ///
 /// let t: Test = from_env().expect("deserialize from env");
-/// println!("{:?}", t)
+/// println!("{:?}", t);
 /// ```
 pub fn from_env<T>() -> Result<T, Error>
 where
     T: de::DeserializeOwned,
 {
     T::deserialize(Deserializer(Node::from_env()))
+}
+/// Deserialize into struct via env with a prefix.
+///
+/// # Examples
+///
+/// ```
+/// use serde::Deserialize;
+/// use serde_env::from_env_with_prefix;
+///
+/// #[derive(Debug, Deserialize, PartialEq)]
+/// struct Test {
+///     home: String,
+///     path: String,
+/// }
+/// temp_env::with_vars(
+///     [
+///         ("TEST_ENV_HOME", Some("test")),
+///         ("TEST_ENV_PATH", Some("test")),
+///     ],
+///     || {
+///         let t: Test = from_env_with_prefix("TEST_ENV").expect("deserialize from env");
+///
+///         let result = Test {
+///             home: "test".to_string(),
+///             path: "test".to_string(),
+///         };
+///         assert_eq!(t, result);
+///     },
+/// );
+/// ```
+pub fn from_env_with_prefix<T>(prefix: &str) -> Result<T, Error>
+where
+    T: de::DeserializeOwned,
+{
+    T::deserialize(Deserializer(Node::from_env_with_prefix(prefix)))
 }
 
 struct Deserializer(Node);
@@ -330,7 +365,7 @@ impl<'de> SeqAccess<'de> for SeqAccessor {
     {
         match self.elements.next() {
             None => Ok(None),
-            Some(v) => Ok(Some(seed.deserialize(Deserializer(Node::new(&v)))?)),
+            Some(v) => Ok(Some(seed.deserialize(Deserializer(Node::new(v)))?)),
         }
     }
 }
