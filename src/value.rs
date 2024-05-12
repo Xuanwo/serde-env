@@ -6,7 +6,7 @@ use crate::cond_log::trace;
 
 /// Node represents a tree of env values.
 ///
-/// Every env will be seperated by `_` in key to construct this tree.
+/// Every env will be separated by `_` in key to construct this tree.
 ///
 /// - `ABC=123` => `Node("123", {})`
 /// - `ABC_DEF=123` => `Node("", { "DEF": Node("123", {}) })`

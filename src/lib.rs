@@ -1,8 +1,8 @@
 //! serde-env will allow deserializing env into structs.
 //!
 //! The biggest different between [envy](https://github.com/softprops/envy) is
-//! serde-env supports deserialize `_` seperated env into nests structs. That means
-//! we will treat env as `_` seperated tree instead of a flat map.
+//! serde-env supports deserialize `_` separated env into nests structs. That means
+//! we will treat env as `_` separated tree instead of a flat map.
 //!
 //! For examples:
 //!
