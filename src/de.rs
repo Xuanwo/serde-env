@@ -565,7 +565,7 @@ mod tests {
 
     /// This test is ported from [softprops/envy](https://github.com/softprops/envy/blob/801d81e7c3e443470e110bf4e34460acba113476/src/lib.rs#L410)
     #[derive(Deserialize, Debug, PartialEq, Eq)]
-    pub struct Foo {
+    struct Foo {
         bar: String,
         baz: bool,
         zoom: Option<u16>,
@@ -582,16 +582,16 @@ mod tests {
         mode_xx: bool,
     }
 
-    pub fn default_bool() -> bool {
+    fn default_bool() -> bool {
         true
     }
 
-    pub fn default_kaboom() -> u16 {
+    fn default_kaboom() -> u16 {
         8080
     }
 
     #[derive(Deserialize, Debug, PartialEq, Eq, Default)]
-    pub struct CustomNewType(u32);
+    struct CustomNewType(u32);
 
     #[test]
     fn test_ported_from_envy() {

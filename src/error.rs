@@ -30,7 +30,7 @@ impl Display for Error {
 impl std::error::Error for Error {}
 
 impl Error {
-    pub fn new<E>(err: E) -> Self
+    pub(crate) fn new<E>(err: E) -> Self
     where
         E: std::error::Error,
     {
