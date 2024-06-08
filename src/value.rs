@@ -12,7 +12,7 @@ use crate::cond_log::trace;
 /// - `ABC_DEF=123` => `Node("", { "DEF": Node("123", {}) })`
 /// - `ABC=123,ABC_DEF=456` => `Node("123", { "DEF": Node("456", {}) })`
 #[derive(PartialEq, Clone)]
-pub struct Node(String, BTreeMap<String, Node>);
+pub(crate) struct Node(String, BTreeMap<String, Node>);
 
 impl Debug for Node {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
@@ -32,29 +32,29 @@ impl Debug for Node {
 
 impl Node {
     /// Create a new node without children
-    pub fn new(v: impl Into<String>) -> Self {
+    pub(crate) fn new(v: impl Into<String>) -> Self {
         Node(v.into(), BTreeMap::new())
     }
 
     /// Get value from node.
-    pub fn value(&self) -> &str {
+    pub(crate) fn value(&self) -> &str {
         &self.0
     }
 
     /// Into value to get ownership.
-    pub fn into_value(self) -> String {
+    pub(crate) fn into_value(self) -> String {
         self.0
     }
 
-    pub fn is_empty(&self) -> bool {
+    pub(crate) fn is_empty(&self) -> bool {
         self.0.is_empty() && self.1.is_empty()
     }
 
-    pub fn has_children(&self) -> bool {
+    pub(crate) fn has_children(&self) -> bool {
         !self.1.is_empty()
     }
 
-    pub fn flatten(&self, prefix: &str) -> HashSet<String> {
+    pub(crate) fn flatten(&self, prefix: &str) -> HashSet<String> {
         let mut m = HashSet::new();
 
         for (key, value) in self.1.iter() {
@@ -79,7 +79,7 @@ impl Node {
     /// Get node value full key name
     ///
     /// `node.get("abc_def")` => `node.get("abc").get("def")`
-    pub fn get(&self, k: &str) -> Option<&Node> {
+    pub(crate) fn get(&self, k: &str) -> Option<&Node> {
         trace!("get key: {}", k);
 
         match k.split_once('_') {
@@ -118,7 +118,7 @@ impl Node {
     }
 
     /// Construct full tree from env.
-    pub fn from_env() -> Self {
+    pub(crate) fn from_env() -> Self {
         let mut root = Node::new(String::default());
 
         let vars = env::vars()
@@ -131,7 +131,7 @@ impl Node {
         root
     }
     /// Construct full tree from env with prefix.
-    pub fn from_env_with_prefix(prefix: &str) -> Self {
+    pub(crate) fn from_env_with_prefix(prefix: &str) -> Self {
         let prefix = format!("{}_", prefix);
         let mut root = Node::new(&prefix);
         let vars = env::vars().filter_map(|(k, v)| {
