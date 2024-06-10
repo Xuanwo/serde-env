@@ -50,15 +50,15 @@ where
 /// }
 /// temp_env::with_vars(
 ///     [
-///         ("TEST_ENV_HOME", Some("test")),
-///         ("TEST_ENV_PATH", Some("test")),
+///         ("TEST_ENV_HOME", Some("/test")),
+///         ("TEST_ENV_PATH", Some("foo:bar")),
 ///     ],
 ///     || {
 ///         let t: Test = from_env_with_prefix("TEST_ENV").expect("deserialize from env");
 ///
 ///         let result = Test {
-///             home: "test".to_string(),
-///             path: "test".to_string(),
+///             home: "/test".to_string(),
+///             path: "foo:bar".to_string(),
 ///         };
 ///         assert_eq!(t, result);
 ///     },
@@ -69,6 +69,80 @@ where
     T: de::DeserializeOwned,
 {
     T::deserialize(Deserializer(Node::from_env_with_prefix(prefix)))
+}
+
+/// Deserialize into struct via an iterable of `(AsRef<str>, AsRef<str>)`
+/// representing keys and values.
+///
+/// # Examples
+///
+/// ```
+/// use serde::Deserialize;
+/// use serde_env::from_iter;
+///
+/// #[derive(Debug, Deserialize, PartialEq)]
+/// struct Test {
+///     home: String,
+///     path: String,
+/// }
+/// let vars = [
+///     ("HOME", "/test"),
+///     ("PATH", "foo:bar"),
+/// ];
+///
+/// let actual: Test = from_iter(vars).expect("deserialize from iter");
+///
+/// let expected = Test {
+///     home: "/test".to_string(),
+///     path: "foo:bar".to_string(),
+/// };
+///
+/// assert_eq!(actual, expected);
+/// ```
+pub fn from_iter<Iter, S, T>(iter: Iter) -> Result<T, Error>
+where
+    Iter: IntoIterator<Item = (S, S)>,
+    S: AsRef<str>,
+    T: de::DeserializeOwned,
+{
+    T::deserialize(Deserializer(Node::from_iter(iter)))
+}
+
+/// Deserialize into struct via an iterable of `(AsRef<str>, AsRef<str>)`
+/// representing keys and values, with a prefix.
+///
+/// # Examples
+///
+/// ```
+/// use serde::Deserialize;
+/// use serde_env::from_iter_with_prefix;
+///
+/// #[derive(Debug, Deserialize, PartialEq)]
+/// struct Test {
+///     home: String,
+///     path: String,
+/// }
+/// let vars = ([
+///     ("TEST_ENV_HOME", "/test"),
+///     ("TEST_ENV_PATH", "foo:bar"),
+/// ]);
+///
+/// let actual: Test = from_iter_with_prefix(vars, "TEST_ENV").expect("deserialize from iter");
+///
+/// let expected = Test {
+///     home: "/test".to_string(),
+///     path: "foo:bar".to_string(),
+/// };
+///
+/// assert_eq!(actual, expected);
+/// ```
+pub fn from_iter_with_prefix<Iter, S, T>(iter: Iter, prefix: &str) -> Result<T, Error>
+where
+    Iter: IntoIterator<Item = (S, S)>,
+    S: AsRef<str>,
+    T: de::DeserializeOwned,
+{
+    T::deserialize(Deserializer(Node::from_iter_with_prefix(iter, prefix)))
 }
 
 struct Deserializer(Node);

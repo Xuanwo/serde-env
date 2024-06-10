@@ -117,35 +117,60 @@ impl Node {
         };
     }
 
-    /// Construct full tree from env.
-    pub(crate) fn from_env() -> Self {
+    /// Construct full tree from an iterator.
+    pub(crate) fn from_iter<Iter, S>(iter: Iter) -> Self
+    where
+        S: AsRef<str>,
+        Iter: IntoIterator<Item = (S, S)>,
+    {
         let mut root = Node::new(String::default());
 
-        let vars = env::vars()
-            .map(|(k, v)| (k.to_lowercase(), v))
-            .filter(|(_, v)| !v.is_empty());
+        let vars = iter
+            .into_iter()
+            .map(|(k, v)| (k.as_ref().to_lowercase(), v))
+            .filter(|(_, v)| !v.as_ref().is_empty());
+
         for (k, v) in vars {
-            root.push(&k, &v)
+            root.push(&k, v.as_ref())
         }
 
         root
     }
-    /// Construct full tree from env with prefix.
-    pub(crate) fn from_env_with_prefix(prefix: &str) -> Self {
+
+    /// Construct full tree from an iterator with prefix.
+    pub(crate) fn from_iter_with_prefix<Iter, S>(iter: Iter, prefix: &str) -> Self
+    where
+        S: AsRef<str>,
+        Iter: IntoIterator<Item = (S, S)>,
+    {
         let prefix = format!("{}_", prefix);
-        let mut root = Node::new(&prefix);
-        let vars = env::vars().filter_map(|(k, v)| {
-            if v.is_empty() {
+        let mut root = Node::new(String::default());
+
+        let vars = iter.into_iter().filter_map(|(k, v)| {
+            if v.as_ref().is_empty() {
                 None
             } else {
-                k.strip_prefix(&prefix).map(|k| (k.to_lowercase(), v))
+                k.as_ref()
+                    .strip_prefix(&prefix)
+                    .map(|k| (k.to_lowercase(), v))
             }
         });
 
         for (k, v) in vars {
-            root.push(&k, &v)
+            root.push(&k, v.as_ref())
         }
+
         root
+    }
+
+    /// Construct full tree from env.
+    pub(crate) fn from_env() -> Self {
+        Node::from_iter(env::vars())
+    }
+
+    /// Construct full tree from env with prefix.
+    pub(crate) fn from_env_with_prefix(prefix: &str) -> Self {
+        Node::from_iter_with_prefix(env::vars(), prefix)
     }
 }
 
