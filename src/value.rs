@@ -2,8 +2,6 @@ use std::collections::{BTreeMap, HashSet};
 use std::fmt::{Debug, Formatter};
 use std::{env, fmt};
 
-use crate::cond_log::trace;
-
 /// Node represents a tree of env values.
 ///
 /// Every env will be separated by `_` in key to construct this tree.
@@ -80,8 +78,6 @@ impl Node {
     ///
     /// `node.get("abc_def")` => `node.get("abc").get("def")`
     pub(crate) fn get(&self, k: &str) -> Option<&Node> {
-        trace!("get key: {}", k);
-
         match k.split_once('_') {
             None => self.1.get(k),
             Some((k, remain)) => match self.1.get(k) {
@@ -95,8 +91,6 @@ impl Node {
     ///
     /// `node.push("abc_def", v)` => `node.push("abc", "").push("def", v)`
     fn push(&mut self, k: &str, v: &str) {
-        trace!("try to push value: {}, {}", k, v);
-
         match k.split_once('_') {
             None => {
                 self.1

@@ -12,16 +12,12 @@ version = "0.1.1"
 [dependencies]
 serde = "1"
 anyhow = "1"
-log = { version = "0.4", optional = true }
 
 [dev-dependencies]
 serde = { version = "1", features = ["derive"] }
 temp-env = "0.3"
-env_logger = "0.11"
 criterion = { version = "0.5", features = ["html_reports"] }
 
-[features]
-log = ["dep:log"]
 [[bench]]
 name = "from_env"
 harness = false

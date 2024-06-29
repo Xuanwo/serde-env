@@ -32,7 +32,6 @@
 //! println!("{:?}", t)
 //! ```
 
-mod cond_log;
 mod de;
 pub mod error;
 mod value;
