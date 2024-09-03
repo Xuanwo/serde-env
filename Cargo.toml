@@ -15,6 +15,7 @@ anyhow = "1"
 
 [dev-dependencies]
 serde = { version = "1", features = ["derive"] }
+serde_with = { version = "3", features = ["json"] }
 temp-env = "0.3"
 criterion = { version = "0.5", features = ["html_reports"] }
 
