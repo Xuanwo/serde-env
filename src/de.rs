@@ -149,11 +149,11 @@ struct Deserializer(Node);
 impl<'de> de::Deserializer<'de> for Deserializer {
     type Error = Error;
 
-    fn deserialize_any<V>(self, _vis: V) -> Result<V::Value, Self::Error>
+    fn deserialize_any<V>(self, vis: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        Err(de::Error::custom("deserialize_any is not supported"))
+        vis.visit_str(self.0.value())
     }
 
     fn deserialize_bool<V>(self, vis: V) -> Result<V::Value, Self::Error>
@@ -783,6 +783,52 @@ mod tests {
         temp_env::with_vars(vec![("FOO", Some("Z")), ("FOO_A", Some("1"))], || {
             let t: ExternallyEnumStruct = from_env().expect("must success");
             assert_eq!(t.foo, ExternallyEnum::Z { a: 1 })
+        });
+    }
+
+    #[derive(Deserialize, PartialEq, Debug)]
+    struct TriggerDeserializeAny {
+        foo: TriggerDeserializeAnyEnum,
+    }
+
+    #[serde_with::serde_as]
+    #[derive(Deserialize, PartialEq, Debug)]
+    #[serde(untagged)]
+    enum TriggerDeserializeAnyEnum {
+        Json(#[serde_as(as = "serde_with::json::JsonString")] Vec<String>),
+        CommaSeparated(
+            #[serde_as(
+                deserialize_as = "serde_with::StringWithSeparator<serde_with::formats::CommaSeparator, String>"
+            )]
+            Vec<String>,
+        ),
+        NonJSON(Vec<String>),
+    }
+
+    #[test]
+    fn test_from_env_deserialize_any() {
+        temp_env::with_vars(vec![("FOO", Some("X"))], || {
+            let t: TriggerDeserializeAny = from_env().expect("must success");
+            assert_eq!(
+                t.foo,
+                TriggerDeserializeAnyEnum::CommaSeparated(vec!["X".to_string()])
+            )
+        });
+
+        temp_env::with_vars(vec![("FOO", Some("X,Y"))], || {
+            let t: TriggerDeserializeAny = from_env().expect("must success");
+            assert_eq!(
+                t.foo,
+                TriggerDeserializeAnyEnum::CommaSeparated(vec!["X".to_string(), "Y".to_string()])
+            )
+        });
+
+        temp_env::with_vars(vec![("FOO", Some("[\"X\",\"Y\"]"))], || {
+            let t: TriggerDeserializeAny = from_env().expect("must success");
+            assert_eq!(
+                t.foo,
+                TriggerDeserializeAnyEnum::Json(vec!["X".to_string(), "Y".to_string()])
+            )
         });
     }
 
