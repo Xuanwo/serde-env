@@ -1,10 +1,9 @@
-use std::collections::HashSet;
-
-use serde::de::{DeserializeSeed, IntoDeserializer, SeqAccess, Visitor};
-use serde::{de, forward_to_deserialize_any};
+use std::collections::BTreeSet;
 
 use crate::error::Error;
 use crate::value::Node;
+use serde::de::{DeserializeSeed, IntoDeserializer, SeqAccess, Visitor};
+use serde::{de, forward_to_deserialize_any};
 
 /// Deserialize into struct via env.
 ///
@@ -368,6 +367,71 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     }
 }
 
+/// KeyDeserializer is used to deserialize key of a map/enum/struct.
+///
+/// It's similar to `StringDeserializer`, but only used for key deserialization in serde-env where:
+///
+/// - Key is case insensitive: `PATH`, `Path`, `path`, `PatH` all map to the same key.
+/// - Key is prefix based: Key could be adapted based on the deserialize target itself.
+struct KeyDeserializer {
+    key: String,
+}
+
+impl KeyDeserializer {
+    fn new(key: String) -> Self {
+        Self { key }
+    }
+}
+
+impl<'de> de::Deserializer<'de> for KeyDeserializer {
+    type Error = Error;
+
+    fn deserialize_any<V>(self, vis: V) -> Result<V::Value, Self::Error>
+    where
+        V: Visitor<'de>,
+    {
+        vis.visit_str(&self.key)
+    }
+
+    fn deserialize_str<V>(self, vis: V) -> Result<V::Value, Self::Error>
+    where
+        V: Visitor<'de>,
+    {
+        vis.visit_str(&self.key)
+    }
+
+    fn deserialize_string<V>(self, vis: V) -> Result<V::Value, Self::Error>
+    where
+        V: Visitor<'de>,
+    {
+        vis.visit_string(self.key)
+    }
+
+    fn deserialize_enum<V>(
+        self,
+        _name: &'static str,
+        variants: &'static [&'static str],
+        visitor: V,
+    ) -> Result<V::Value, Self::Error>
+    where
+        V: Visitor<'de>,
+    {
+        for v in variants {
+            // Return the enum variant if it matches the key.
+            if self.key.eq_ignore_ascii_case(v) {
+                return visitor.visit_enum(v.into_deserializer());
+            }
+        }
+        Err(de::Error::unknown_variant(&self.key, variants))
+    }
+
+    forward_to_deserialize_any! {
+        bool i8 i16 i32 i64 u8 u16 u32 u64 f32 f64 char bytes byte_buf
+        option unit unit_struct newtype_struct seq tuple
+        tuple_struct map struct identifier ignored_any
+    }
+}
+
 struct SeqAccessor {
     elements: std::vec::IntoIter<String>,
 }
@@ -396,12 +460,12 @@ impl<'de> SeqAccess<'de> for SeqAccessor {
 
 struct MapAccessor {
     last_value: Option<Node>,
-    keys: std::collections::hash_set::IntoIter<String>,
+    keys: std::collections::btree_set::IntoIter<String>,
     node: Node,
 }
 
 impl MapAccessor {
-    fn new(keys: HashSet<String>, node: Node) -> Self {
+    fn new(keys: BTreeSet<String>, node: Node) -> Self {
         Self {
             last_value: None,
             keys: keys.into_iter(),
@@ -433,7 +497,7 @@ impl<'de> de::MapAccess<'de> for MapAccessor {
                 None => continue,
                 Some(v) => {
                     self.last_value = Some(v.clone());
-                    return Ok(Some(seed.deserialize(key.into_deserializer())?));
+                    return Ok(Some(seed.deserialize(KeyDeserializer::new(key))?));
                 }
             }
         }
@@ -896,4 +960,71 @@ mod tests {
             )
         })
     }
+
+    #[test]
+    fn inner_mapping_with_enum_keys() {
+        #[derive(Debug, Deserialize, Eq, Hash, PartialEq)]
+        enum MappingKey {
+            Option1,
+            Option2,
+        }
+        #[derive(Debug, Deserialize, Eq, PartialEq)]
+        struct Mapping {
+            val: HashMap<MappingKey, String>,
+        }
+
+        let env = vec![("VAL_OPTION1", "FOO"), ("VAL_OPTION2", "BAR")];
+        let t: Mapping = from_iter(env).expect("must succeed");
+        assert_eq!(
+            t,
+            Mapping {
+                val: HashMap::from_iter(vec![
+                    (MappingKey::Option1, "FOO".to_string()),
+                    (MappingKey::Option2, "BAR".to_string())
+                ])
+            }
+        );
+    }
+
+    // TODO: not supported yet, refer to https://github.com/Xuanwo/serde-env/issues/49
+    //
+    // #[test]
+    // fn double_inner_mapping_with_enum_keys() {
+    //     #[derive(Debug, Deserialize, Eq, Hash, PartialEq)]
+    //     #[serde(rename_all = "lowercase")]
+    //     enum MappingKey {
+    //         Option1,
+    //         Option2,
+    //     }
+    //
+    //     #[derive(Debug, Deserialize, Eq, Hash, PartialEq)]
+    //     #[serde(rename_all = "lowercase")]
+    //     enum MappingKey2 {
+    //         Inner1,
+    //         Inner2,
+    //     }
+    //
+    //     #[derive(Debug, Deserialize, Eq, PartialEq)]
+    //     struct Mapping {
+    //         val: HashMap<MappingKey, HashMap<MappingKey2, String>>,
+    //     }
+    //
+    //     let env = vec![("VAL_OPTION1_INNER2", "FOO"), ("VAL_OPTION2_INNER1", "BAR")];
+    //     let t: Mapping = from_iter(env).expect("must succeed");
+    //     assert_eq!(
+    //         t,
+    //         Mapping {
+    //             val: HashMap::from_iter(vec![
+    //                 (
+    //                     MappingKey::Option1,
+    //                     HashMap::from_iter(vec![(MappingKey2::Inner2, "FOO".to_string())])
+    //                 ),
+    //                 (
+    //                     MappingKey::Option2,
+    //                     HashMap::from_iter(vec![(MappingKey2::Inner1, "BAR".to_string())])
+    //                 ),
+    //             ])
+    //         }
+    //     );
+    // }
 }

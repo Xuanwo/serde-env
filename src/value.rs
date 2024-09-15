@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::{Debug, Formatter};
 use std::{env, fmt};
 
@@ -52,8 +52,8 @@ impl Node {
         !self.1.is_empty()
     }
 
-    pub(crate) fn flatten(&self, prefix: &str) -> HashSet<String> {
-        let mut m = HashSet::new();
+    pub(crate) fn flatten(&self, prefix: &str) -> BTreeSet<String> {
+        let mut m = BTreeSet::new();
 
         for (key, value) in self.1.iter() {
             let prefix_key = if prefix.is_empty() {
@@ -246,7 +246,7 @@ mod tests {
         root.push("a_b_c_e", "Hello, Mars!");
         root.push("a_b_f", "Hello, Moon!");
 
-        let mut expected = HashSet::<String>::new();
+        let mut expected = BTreeSet::<String>::new();
         expected.insert("a".to_owned());
         expected.insert("a_b".to_owned());
         expected.insert("a_b_c".to_owned());
