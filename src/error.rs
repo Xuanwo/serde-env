@@ -1,23 +1,20 @@
 use std::fmt::{self, Debug, Display};
 
-use anyhow::anyhow;
 use serde::{de, ser};
 
 /// Errors returned by serde-env.
-///
-/// TODO: returns more meaning errors.
 #[derive(Debug)]
-pub struct Error(anyhow::Error);
+pub struct Error(String);
 
 impl ser::Error for Error {
     fn custom<T: Display>(msg: T) -> Self {
-        Error(anyhow!("{}", msg))
+        Error(msg.to_string())
     }
 }
 
 impl de::Error for Error {
     fn custom<T: Display>(msg: T) -> Self {
-        Error(anyhow!("{}", msg))
+        Error(msg.to_string())
     }
 }
 
@@ -34,6 +31,6 @@ impl Error {
     where
         E: std::error::Error,
     {
-        Self(anyhow!("{}", err))
+        Self(err.to_string())
     }
 }
