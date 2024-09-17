@@ -11,6 +11,7 @@ version = "0.2.0"
 
 [dependencies]
 serde = "1"
+serde_path_to_error = "0.1.16"
 
 [dev-dependencies]
 serde = { version = "1", features = ["derive"] }
