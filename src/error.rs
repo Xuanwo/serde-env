@@ -33,4 +33,8 @@ impl Error {
     {
         Self(err.to_string())
     }
+
+    pub(crate) fn from_str(err: &str) -> Self {
+        Self(err.to_string())
+    }
 }
