@@ -52,26 +52,8 @@ impl Node {
         !self.1.is_empty()
     }
 
-    pub(crate) fn flatten(&self, prefix: &str) -> BTreeSet<String> {
-        let mut m = BTreeSet::new();
-
-        for (key, value) in self.1.iter() {
-            let prefix_key = if prefix.is_empty() {
-                key.to_string()
-            } else {
-                format!("{prefix}_{key}")
-            };
-
-            if !value.0.is_empty() {
-                m.insert(prefix_key.clone());
-            }
-            if !value.1.is_empty() {
-                m.insert(prefix_key.clone());
-                m.extend(value.flatten(&prefix_key))
-            }
-        }
-
-        m
+    pub(crate) fn keys(&self) -> BTreeSet<String> {
+        self.1.keys().cloned().collect()
     }
 
     /// Get node value full key name
@@ -238,7 +220,7 @@ mod tests {
     }
 
     #[test]
-    fn test_flatten() {
+    fn test_keys() {
         let mut root = Node::new("");
 
         root.push("a", "Hello, World!");
@@ -248,13 +230,8 @@ mod tests {
 
         let mut expected = BTreeSet::<String>::new();
         expected.insert("a".to_owned());
-        expected.insert("a_b".to_owned());
-        expected.insert("a_b_c".to_owned());
-        expected.insert("a_b_c_d".to_owned());
-        expected.insert("a_b_c_e".to_owned());
-        expected.insert("a_b_f".to_owned());
 
-        assert_eq!(root.flatten(""), expected);
+        assert_eq!(root.keys(), expected);
     }
     #[test]
     fn test_prefix() {
