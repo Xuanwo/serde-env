@@ -1001,6 +1001,30 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
+    fn inner_mapping_with_string_keys() {
+        #[derive(Debug, Deserialize, Eq, PartialEq)]
+        struct InnerStruct {
+            a_b: u32,
+        }
+        #[derive(Debug, Deserialize, Eq, PartialEq)]
+        struct ExternalStruct {
+            val: HashMap<String, InnerStruct>,
+        }
+
+        let env = vec![("VAL_FOO_BAR_A_B", "1"), ("VAL_BAR_BAZ_A_B", "2")];
+        let t: ExternalStruct = from_iter(env).expect("must succeed");
+        assert_eq!(
+            t,
+            ExternalStruct {
+                val: HashMap::from_iter(vec![
+                    ("foo_bar".to_string(), InnerStruct { a_b: 1 }),
+                    ("bar_baz".to_string(), InnerStruct { a_b: 2 }),
+                ])
+            }
+        );
+    }
+    #[test]
     fn inner_mapping_with_enum_keys() {
         #[derive(Debug, Deserialize, Eq, Hash, PartialEq)]
         enum MappingKey {
