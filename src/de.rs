@@ -986,6 +986,31 @@ mod tests {
         );
     }
 
+    #[test]
+    fn enum_with_unused_envs() {
+        temp_env::with_vars(vec![("FOO", Some("X")), ("FOO_Z_A", Some("20"))], || {
+            let t: ExternallyEnumStruct = from_env().expect("must success");
+            assert_eq!(t.foo, ExternallyEnum::X)
+        });
+
+        temp_env::with_vars(
+            vec![
+                ("FOO", Some("Y")),
+                ("FOO_A", Some("20")),
+                ("FOO_BAR", Some("test")),
+            ],
+            || {
+                let t: ExternallyEnumStruct = from_env().expect("must success");
+                assert_eq!(
+                    t.foo,
+                    ExternallyEnum::Y(EnumNewtype {
+                        bar: "test".to_string()
+                    })
+                )
+            },
+        );
+    }
+
     // TODO: not supported yet, refer to https://github.com/Xuanwo/serde-env/issues/49
     //
     // #[test]
