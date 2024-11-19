@@ -49,7 +49,7 @@ impl Node {
     }
 
     pub(crate) fn has_children(&self) -> bool {
-        !self.1.is_empty()
+        self.1.contains_key(&self.0)
     }
 
     pub(crate) fn flatten(&self, prefix: &str) -> BTreeSet<String> {
