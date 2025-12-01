@@ -16,7 +16,7 @@ serde = "1"
 serde = { version = "1", features = ["derive"] }
 serde_with = { version = "3", features = ["json"] }
 temp-env = "0.3"
-criterion = { version = "0.5", features = ["html_reports"] }
+criterion = { version = "0.8", features = ["html_reports"] }
 
 [[bench]]
 name = "from_env"
