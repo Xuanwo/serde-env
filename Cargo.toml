@@ -7,7 +7,7 @@ repository = "https://github.com/Xuanwo/serde-env"
 edition = "2021"
 license = "Apache-2.0"
 name = "serde-env"
-version = "0.2.0"
+version = "0.3.0"
 
 [dependencies]
 serde = "1"
@@ -16,7 +16,7 @@ serde = "1"
 serde = { version = "1", features = ["derive"] }
 serde_with = { version = "3", features = ["json"] }
 temp-env = "0.3"
-criterion = { version = "0.5", features = ["html_reports"] }
+criterion = { version = "0.7", features = ["html_reports"] }
 
 [[bench]]
 name = "from_env"
