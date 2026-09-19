@@ -152,7 +152,36 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
-        vis.visit_str(self.0.value())
+        let v = self.0.value();
+        if v.is_empty() {
+            self.deserialize_map(vis)
+        } else if let Ok(v) = v.parse::<i8>() {
+            vis.visit_i8(v)
+        } else if let Ok(v) = v.parse::<i16>() {
+            vis.visit_i16(v)
+        } else if let Ok(v) = v.parse::<i32>() {
+            vis.visit_i32(v)
+        } else if let Ok(v) = v.parse::<i64>() {
+            vis.visit_i64(v)
+        } else if let Ok(v) = v.parse::<i128>() {
+            vis.visit_i128(v)
+        } else if let Ok(v) = v.parse::<u8>() {
+            vis.visit_u8(v)
+        } else if let Ok(v) = v.parse::<u16>() {
+            vis.visit_u16(v)
+        } else if let Ok(v) = v.parse::<u32>() {
+            vis.visit_u32(v)
+        } else if let Ok(v) = v.parse::<u64>() {
+            vis.visit_u64(v)
+        } else if let Ok(v) = v.parse::<u128>() {
+            vis.visit_u128(v)
+        } else if let Ok(v) = v.parse::<f32>() {
+            vis.visit_f32(v)
+        } else if let Ok(v) = v.parse::<f64>() {
+            vis.visit_f64(v)
+        } else {
+            vis.visit_str(v)
+        }
     }
 
     fn deserialize_bool<V>(self, vis: V) -> Result<V::Value, Self::Error>
@@ -717,9 +746,7 @@ mod tests {
         log_level: String,
     }
 
-    // We are not support alias now.
     #[test]
-    #[ignore]
     fn test_from_env_alias() {
         temp_env::with_vars(vec![("meta_log_level", Some("DEBUG"))], || {
             let t: TestStructAlias = from_env().expect("must success");
@@ -909,10 +936,7 @@ mod tests {
         Z { a: i32 },
     }
 
-    // Currently Internally / Adjacently / Untagged enum is not support by the following issues
-    // https://github.com/serde-rs/serde/issues/2187
     #[test]
-    #[ignore]
     fn test_from_env_internally_enum() {
         temp_env::with_vars(vec![("FOO_TYPE", Some("X"))], || {
             let t: InternallyEnumStruct = from_env().expect("must success");
